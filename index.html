@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Historia San Valentín</title>
+
+<style>
+body{
+margin:0;
+font-family:sans-serif;
+background:#111;
+color:white;
+text-align:center;
+overflow:hidden;
+}
+
+.screen{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+}
+
+#inicio{
+display:flex;
+background:#222;
+}
+
+.flag{
+width:180px;
+height:120px;
+margin:20px;
+cursor:pointer;
+transition:0.3s;
+border-radius:10px;
+border:3px solid white;
+position:relative;
+}
+
+.flag.locked{
+filter:grayscale(100%);
+cursor:not-allowed;
+}
+
+.flag.locked::after{
+content:"🔒";
+position:absolute;
+font-size:40px;
+top:30%;
+left:40%;
+}
+
+.progress{
+position:absolute;
+bottom:20px;
+font-size:18px;
+}
+
+#scene img{
+width:100vw;
+height:100vh;
+object-fit:contain;
+}
+
+.dialog{
+position:absolute;
+background:white;
+color:black;
+padding:15px 25px;
+border-radius:20px;
+max-width:40%;
+font-size:18px;
+z-index:2;
+transition:0.3s;
+}
+
+.dialog.npc{
+bottom:60px;
+left:50%;
+transform:translateX(-50%);
+}
+
+.dialog.player-left{
+top:60px;
+left:5%;
+}
+
+.dialog.player-right{
+top:60px;
+right:5%;
+}
+
+.dialog.ella{
+top:60px;
+left:50%;
+transform:translateX(-50%);
+background:#ffd6f5;
+}
+
+.nextBtn{
+position:absolute;
+bottom:20px;
+right:20px;
+background:pink;
+border:none;
+padding:10px 20px;
+border-radius:20px;
+cursor:pointer;
+font-size:16px;
+z-index:2;
+}
+
+.choiceBtn{
+position:absolute;
+padding:10px 20px;
+border-radius:20px;
+border:none;
+cursor:pointer;
+z-index:3;
+}
+
+#fade{
+position:absolute;
+width:100%;
+height:100%;
+background:black;
+display:none;
+justify-content:center;
+align-items:center;
+font-size:40px;
+z-index:5;
+}
+.firework{
+position:absolute;
+font-size:24px;
+animation:explode 1s ease-out forwards;
+pointer-events:none;
+z-index:10;
+}
+
+@keyframes explode{
+0%{
+opacity:1;
+transform:scale(0);
+}
+100%{
+opacity:0;
+transform:scale(4);
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="inicio" class="screen">
+<img src="https://flagcdn.com/w320/za.png" class="flag" id="south">
+<img src="https://flagcdn.com/w320/fr.png" class="flag locked" id="france">
+<img src="https://flagcdn.com/w320/jp.png" class="flag" id="japan">
+<div id="progressFR" class="progress">0%</div>
+</div>
+
+<div id="scene" class="screen">
+<img id="sceneImg">
+<div id="dialog" class="dialog"></div>
+<button class="nextBtn" id="next">Siguiente</button>
+</div>
+
+<div id="fade" class="screen"></div>
+
+<script>
+
+let southDone=false;
+let japanDone=false;
+let franceUnlocked=false;
+
+let step=0;
+let currentScene="";
+
+const scene = document.getElementById("scene");
+const inicio = document.getElementById("inicio");
+const dialog = document.getElementById("dialog");
+const img = document.getElementById("sceneImg");
+const fade = document.getElementById("fade");
+const nextBtn = document.getElementById("next");
+
+function typeText(text, speaker="npc"){
+
+dialog.className="dialog";
+dialog.classList.add(speaker);
+
+dialog.innerHTML="";
+let i=0;
+
+let interval=setInterval(()=>{
+dialog.innerHTML+=text[i];
+i++;
+if(i>=text.length) clearInterval(interval);
+},30);
+}
+
+function goInicio(){
+scene.style.display="none";
+inicio.style.display="flex";
+nextBtn.style.display="block";
+}
+
+function showScene(image,text,speaker="npc"){
+scene.style.display="flex";
+inicio.style.display="none";
+img.src=image;
+typeText(text,speaker);
+}
+
+function updateFranceProgress(){
+if(southDone && japanDone){
+franceUnlocked=true;
+document.getElementById("france").classList.remove("locked");
+document.getElementById("progressFR").innerText="100%";
+}
+else if(southDone || japanDone){
+document.getElementById("progressFR").innerText="50%";
+}
+}
+
+document.getElementById("south").onclick=()=>{
+if(southDone) return;
+currentScene="south";
+step=0;
+showScene("img1.jpg","Tres cosas. Solo tres cosas.");
+};
+
+document.getElementById("japan").onclick=()=>{
+if(japanDone) return;
+currentScene="japan";
+step=0;
+showScene("img6.jpg","Hoy solo tenemos dos opciones Giri-choco chocolate para amigos, compañeros o jefes y Honmei-choco para pareja o interés romántico.");
+};
+
+document.getElementById("france").onclick=()=>{
+if(!franceUnlocked) return;
+currentScene="france";
+step=0;
+showScene("img7.jpg","...");
+};
+
+nextBtn.onclick=()=>{
+if(currentScene==="south") southFlow();
+if(currentScene==="japan") japanFlow();
+if(currentScene==="france") franceFlow();
+};
+
+function southFlow(){
+
+step++;
+
+if(step===1) showScene("img2.jpg","Primero la remera. Después los chocolates. Y por último, las flores");
+
+else if(step===2) showScene("img3.jpg","¿Buscando algo especial?");
+
+else if(step===3) typeText("Una remera con el nombre Pamela.","player-left");
+
+else if(step===4) typeText("¿Tú estás ciego?");
+
+else if(step===5) typeText("Solamente de un ojo *compró la remera*","player-left");
+
+else if(step===6) showScene("img4.jpg","¿Chocolates?");
+
+else if(step===7) typeText("Sí..." ,"player-left");
+
+else if(step===8) typeText("Ok");
+
+else if(step===9) typeText("*Compró la caja*","player-left");
+
+else if(step===10) showScene("img5.jpg","¿Por qué estás en todos lados?","player-left");
+
+else if(step===11) typeText("Soy omnipresente");
+
+else if(step===12) typeText("...","player-left");
+
+else if(step===13) typeText("¿Vas a comprar algo?");
+
+else if(step===14) typeText("Dame un ramo con una mezcla de todas las flores que hay en la mesa","player-left");
+
+else if(step===15){
+
+fade.style.display="flex";
+fade.innerHTML="Tres horas después...";
+
+setTimeout(()=>{
+
+fade.style.display="none";
+
+southDone=true;
+document.getElementById("south").classList.add("locked");
+
+updateFranceProgress();
+goInicio();
+
+},2000);
+}
+}
+
+function japanFlow(){
+step++;
+
+if(step===1){
+nextBtn.style.display="none";
+
+let giri=document.createElement("button");
+giri.innerText="Giri-choco";
+giri.className="choiceBtn";
+giri.style.background="red";
+giri.style.top="50%";
+giri.style.left="40%";
+
+let honmei=document.createElement("button");
+honmei.innerText="Honmei-choco";
+honmei.className="choiceBtn";
+honmei.style.background="green";
+honmei.style.top="50%";
+honmei.style.left="60%";
+
+scene.appendChild(giri);
+scene.appendChild(honmei);
+
+let clickCount = 0;
+let scale = 1;
+
+giri.onclick = () => {
+
+clickCount++;
+scale -= 0.08;   // se hace más pequeño
+
+giri.style.transition = "all 0.2s";
+giri.style.transform = "scale(" + scale + ")";
+giri.style.top = Math.random() * 80 + "%";
+giri.style.left = Math.random() * 80 + "%";
+
+if(clickCount >= 10){
+giri.remove();
+}
+};
+
+honmei.onclick=()=>{
+giri.remove();
+honmei.remove();
+typeText("Muchas gracias ❤️");
+nextBtn.style.display="block";
+japanDone=true;
+updateFranceProgress();
+};
+}
+
+else if(step===2){
+goInicio();
+}
+}
+
+function franceFlow(){
+step++;
+
+function heartFireworks(){
+
+for(let i=0;i<60;i++){
+
+let heart=document.createElement("div");
+heart.className="firework";
+heart.innerText="❤️";
+
+heart.style.top=Math.random()*80+"%";
+heart.style.left=Math.random()*80+"%";
+
+scene.appendChild(heart);
+
+setTimeout(()=>{
+heart.remove();
+},1000);
+
+}
+}
+
+if(step===1) typeText("Hola...","ella");
+
+else if(step===2) typeText("Feliz San Valentín ❤️","player-right");
+
+else if(step===3){
+
+heartFireworks();  // 💥 explosión de corazones
+
+setTimeout(()=>{
+goInicio();
+},2000);
+
+}
+}
+
+</script>
+
+</body>
+</html>
